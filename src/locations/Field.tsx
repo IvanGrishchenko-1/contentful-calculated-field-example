@@ -1,5 +1,5 @@
 import React from 'react';
-import {FormControl, TextInput} from '@contentful/f36-components';
+import {FormControl, TextInput } from '@contentful/f36-components';
 import { FieldExtensionSDK } from '@contentful/app-sdk';
 import { useSDK } from '@contentful/react-apps-toolkit';
 import moment from "moment";
@@ -10,15 +10,18 @@ const Field = () => {
   const applyDate: Date | undefined = sdk.entry.fields["applyDate"] ? moment(sdk.entry.fields["applyDate"].getValue()).toDate() : undefined;
 
   const parseStatus = (createdAt: Date, applyDate: Date | undefined): string => {
+      let response = '';
       if (moment().diff(createdAt, 'days') <= 30) {
-          return 'New';
+          response = 'New';
       }
       if (applyDate) {
           const applyDateDiff = moment().diff(applyDate, 'days');
-          return applyDateDiff >= -30 && applyDateDiff < 0 ? 'Expiring' : 'Expired';
+          response = applyDateDiff >= -30 && applyDateDiff < 0 ? 'Expiring' : 'Expired';
       } else {
-          return 'Featured';
+          response = 'Featured';
       }
+      sdk.field.setValue(response).then(() => sdk.entry.save()).then(() => sdk.entry.publish());
+      return response;
   }
 
   return <FormControl isRequired>
