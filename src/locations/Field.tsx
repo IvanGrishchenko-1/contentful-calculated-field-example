@@ -11,14 +11,11 @@ const Field = () => {
 
   const parseStatus = (createdAt: Date, applyDate: Date | undefined): string => {
       let response = '';
-      if (moment().diff(createdAt, 'days') <= 30) {
-          response = 'New';
-      }
       if (applyDate) {
           const applyDateDiff = moment().diff(applyDate, 'days');
           response = applyDateDiff >= -30 && applyDateDiff < 0 ? 'Expiring' : 'Expired';
       } else {
-          response = 'Featured';
+          response = 'New';
       }
       sdk.field.setValue(response).then(() => sdk.entry.save()).then(() => sdk.entry.publish());
       return response;
