@@ -1,19 +1,36 @@
 import React from 'react';
-import { Paragraph } from '@contentful/f36-components';
+import {FormControl, TextInput} from '@contentful/f36-components';
 import { FieldExtensionSDK } from '@contentful/app-sdk';
-import { /* useCMA, */ useSDK } from '@contentful/react-apps-toolkit';
+import { useSDK } from '@contentful/react-apps-toolkit';
+import moment from "moment";
 
 const Field = () => {
   const sdk = useSDK<FieldExtensionSDK>();
-  /*
-     To use the cma, inject it as follows.
-     If it is not needed, you can remove the next line.
-  */
-  // const cma = useCMA();
-  // If you only want to extend Contentful's default editing experience
-  // reuse Contentful's editor components
-  // -> https://www.contentful.com/developers/docs/extensibility/field-editors/
-  return <Paragraph>Hello Entry Field Component (AppId: {sdk.ids.app})</Paragraph>;
+  const createdAt: Date = moment(sdk.entry.getSys().createdAt).toDate();
+  const applyDate: Date | undefined = sdk.entry.fields["applyDate"] ? moment(sdk.entry.fields["applyDate"].getValue()).toDate() : undefined;
+
+  const parseStatus = (createdAt: Date, applyDate: Date | undefined): string => {
+      if (moment().diff(createdAt, 'days') <= 30) {
+          return 'New';
+      }
+      if (applyDate) {
+          const applyDateDiff = moment().diff(applyDate, 'days');
+          return applyDateDiff >= -30 && applyDateDiff < 0 ? 'Expiring' : 'Expired';
+      } else {
+          return 'Featured';
+      }
+  }
+
+  return <FormControl isRequired>
+            <TextInput
+                defaultValue="Featured"
+                value={parseStatus(createdAt, applyDate)}
+                name="status"
+                type="text"
+                placeholder="Status"
+            />
+            <FormControl.HelpText>Calculated status field</FormControl.HelpText>
+          </FormControl>;
 };
 
 export default Field;
