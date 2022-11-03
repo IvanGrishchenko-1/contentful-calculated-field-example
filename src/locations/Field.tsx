@@ -6,11 +6,10 @@ import moment from "moment";
 
 const Field = () => {
   const sdk = useSDK<FieldExtensionSDK>();
-  const createdAt: Date = moment(sdk.entry.getSys().createdAt).toDate();
-  const applyDate: Date | undefined = sdk.entry.fields["applyDate"] ? moment(sdk.entry.fields["applyDate"].getValue()).toDate() : undefined;
+  const applyDate: Date | undefined = sdk.entry.fields["applyDate"].getValue() ? moment(sdk.entry.fields["applyDate"].getValue()).toDate() : undefined;
 
-  const parseStatus = (createdAt: Date, applyDate: Date | undefined): string => {
-      let response = '';
+  const parseStatus = (applyDate: Date | undefined): string => {
+      let response: string;
       if (applyDate) {
           const applyDateDiff = moment().diff(applyDate, 'days');
           response = applyDateDiff >= -30 && applyDateDiff < 0 ? 'Expiring' : 'Expired';
@@ -23,8 +22,7 @@ const Field = () => {
 
   return <FormControl isRequired>
             <TextInput
-                defaultValue="Featured"
-                value={parseStatus(createdAt, applyDate)}
+                value={parseStatus(applyDate)}
                 name="status"
                 type="text"
                 placeholder="Status"
