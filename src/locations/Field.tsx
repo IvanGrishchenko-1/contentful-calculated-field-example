@@ -6,15 +6,31 @@ import moment from "moment";
 
 const Field = () => {
   const sdk = useSDK<FieldExtensionSDK>();
-  const applyDate: Date | undefined = sdk.entry.fields["applyDate"].getValue() ? moment(sdk.entry.fields["applyDate"].getValue()).toDate() : undefined;
+  const createdAt: Date = moment(sdk.entry.getSys().createdAt).toDate();
+  const sdkApplyDate: string | undefined = sdk.entry.fields["applyDate"]?.getValue() as string;
+  const fixedSdkApplyDate: string | undefined =
+      sdkApplyDate ?
+          sdkApplyDate.length > 10
+              ? sdkApplyDate.slice(0, sdkApplyDate.indexOf('T'))
+              : sdkApplyDate
+          : undefined;
+  const applyDate: Date | undefined = fixedSdkApplyDate ? new Date(fixedSdkApplyDate) : undefined;
 
-  const parseStatus = (applyDate: Date | undefined): string => {
-      let response: string;
-      if (applyDate) {
-          const applyDateDiff = moment().diff(applyDate, 'days');
-          response = applyDateDiff >= -30 && applyDateDiff < 0 ? 'Expiring' : 'Expired';
-      } else {
+  const parseStatus = (createdAt: Date, applyDate: Date | undefined): string => {
+      let response: string = 'Active';
+      const newDiff = moment().diff(createdAt, 'hours');
+      if (newDiff >= 0 && newDiff <= 336) {
           response = 'New';
+      }
+      if (applyDate) {
+          const expiringDateDiff = moment(applyDate).diff(moment(), 'hours');
+          const expiredDateDiff = moment().diff(applyDate, 'hours');
+          if (expiringDateDiff >= 0 && expiringDateDiff <= 336) {
+              response = 'Expiring';
+          }
+          if (expiredDateDiff > 0) {
+              response = 'Expired';
+          }
       }
       sdk.field.setValue(response).then(() => sdk.entry.save()).then(() => sdk.entry.publish());
       return response;
@@ -22,7 +38,7 @@ const Field = () => {
 
   return <FormControl isRequired>
             <TextInput
-                value={parseStatus(applyDate)}
+                value={parseStatus(createdAt, applyDate)}
                 name="status"
                 type="text"
                 placeholder="Status"
