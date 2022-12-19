@@ -24,7 +24,7 @@ const Field = () => {
       }
       if (applyDate) {
           const expiringDateDiff = moment(applyDate).diff(moment(), 'hours');
-          if (expiringDateDiff >= 336 && expiringDateDiff <= 0) {
+          if (expiringDateDiff >= 0 && expiringDateDiff <= 336) {
               response = 'Expiring';
           }
           if (expiringDateDiff < 0) {
